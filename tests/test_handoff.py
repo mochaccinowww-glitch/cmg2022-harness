@@ -29,7 +29,7 @@ class HandoffTest(unittest.TestCase):
                 (folder / "daily.csv").write_bytes((ROOT / "examples/offline/daily.csv").read_bytes())
                 run("register", name, "--entry", "daily.csv", "--note", "fixture", *parent)
                 run("select", "baseline", name, "--reason", "offline demonstration")
-                self.assertEqual(Path(run("current", "baseline")["entry"]), folder / "daily.csv")
+                self.assertTrue(Path(run("current", "baseline")["entry"]).samefile(folder / "daily.csv"))
             (folder / "daily.csv").write_text("changed")
             run("current", "baseline", ok=False)
             run("select", "baseline", "variant", "--reason", "drift", ok=False)
