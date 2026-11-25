@@ -1,0 +1,10 @@
+__pycache__/
+demo/
+study/
+*.sr3
+*.dat
+*.out
+*.cmp
+*.results
+*.lic
+.env
