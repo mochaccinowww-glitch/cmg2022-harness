@@ -1,0 +1,4 @@
+stage,sim_day,oil_sc_m3_d,producer_bhp_kpa
+injection,1,4.1,30000
+injection,2,4.3,30000
+shut_in_injector,3,4.2,30000
