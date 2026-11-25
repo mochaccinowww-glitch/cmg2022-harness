@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "id": "daily-r1",
+  "parent": null,
+  "entry": "daily.csv",
+  "note": "Handmade daily averages for the offline walkthrough",
+  "files": {
+    "daily.csv": "7f84f3ddf42e2bb54850a4a8c31e55a43efb3623c7c7643b27cc5f206d4aef08"
+  }
+}
