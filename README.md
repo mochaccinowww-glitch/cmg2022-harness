@@ -2,7 +2,7 @@
 
 一个用于 CMG 油藏数值模拟的项目模板。做完一组算例，你可以给基准模型和每个派生算例分配固定编号，记录改过哪些输入，再从报告追溯到对应的 DAT、OUT 和 SR3。交给同事时，对方可以查到当前采用的版本、选择理由，以及还有哪项结论需要验证。
 
-[English](README.en.md) · [下载 v0.3.0](https://github.com/mochaccinowww-glitch/cmg2022-harness/releases/download/v0.3.0/cmg2022-harness-v0.3.0.zip) · [新手指南](START_HERE.md)
+[English](README.en.md) · [下载 v0.4.0](https://github.com/mochaccinowww-glitch/cmg2022-harness/releases/download/v0.4.0/cmg2022-harness-v0.4.0.zip) · [新手指南](START_HERE.md)
 
 ## 先跑一个例子
 
@@ -34,6 +34,19 @@ python harness.py --project study current baseline
 ```
 
 最后一条命令返回当前基准的编号、入口路径和选择理由，并复核文件清单及 SHA-256。若登记后的文件有改动，校验会报出差异。准备新方案时使用新编号，并在登记时用 `--parent base-r1` 记录来源。运行实际模型需要相应的 CMG 安装和许可；求解是否收敛、物质平衡是否满足要求、井控是否切换，需结合原生输出核查。
+
+## 跨会话继续研究
+
+从本版开始，项目内 agent 默认在交付前保存已核实的进展、影响研究的用户反馈和下一步工作。资料按任务分开，例如流体拟合、井控、论文图表。下次说“继续”时先读总览，再读相关主题。普通查询不会生成新记录。这个约定由读取项目说明的 agent 执行；单独操作 Launcher 或 Results 时，可以从命令行手动保存。工具不在后台监控聊天或软件窗口。
+
+```powershell
+python harness.py --project study context
+python harness.py --project study checkpoint fluid --base 0 --kind feedback --summary "Use the published fitted value for the viscosity comparison." --next "Recompute the comparison table." --evidence STUDY.md
+python harness.py --project study context fluid
+python harness.py --project study context fluid --history
+```
+
+首次保存后版本为 1，下一次更新用 `--base 1`。将证据路径替换为本轮实际核查的文件。案例、角色与主题可分别创建；已有 v0.3 研究直接使用新工具读取，首次保存时自动建立 context/。更新工具时保留原研究目录及历史记录。项目私有 Git 仓库如需跨工作站交接，应一并管理 context/、registry/、decisions/ 和它们引用的证据。
 
 ## 按需查阅
 

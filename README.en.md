@@ -30,3 +30,13 @@ Copy the entire `skills/cmg2022-harness` directory into your project's `.agents/
 Write the question in STUDY.md, keep the case-specific evidence in REVIEW.md, and record the next decision in HANDOFF.md. Check solver version, actual controls, output coverage, material balance and interpretation separately. Figures derived from multiple runs should identify the reference cases, equations and source fields. A successful checksum verifies file identity. The user reviews physical validity and scope of inference.
 
 This community package includes no solver, credentials, proprietary example decks, field observations or CMG output. Its native-software notes cover WinProp, GEM, Results and CMOST; other simulators need their own local checks. Run `python -m unittest discover -s tests -v` to test the registry. See the [architecture](ARCHITECTURE.md), [Chinese walkthrough](START_HERE.md) and [MIT license](LICENSE).
+
+## Resume by topic (v0.4.0)
+
+Run `python harness.py --project study context` for a live index of cases, role selections and topic summaries. Read one topic with `context fluid`; add `--history` for its revisions. The bundled agent instructions call for a checkpoint before handing off meaningful progress, corrections, blockers or a pause. Each checkpoint records the current finding, evidence and next step. This is an agent convention backed by a CLI, not a background recorder. In a manual workflow use:
+
+```shell
+python harness.py --project study checkpoint fluid --base 0 --kind feedback --summary "Compare against the published fit." --next "Review viscosity residuals." --evidence STUDY.md
+```
+
+Use the last revision read as the base for an update. A stale update is rejected. Older studies remain readable without migration.

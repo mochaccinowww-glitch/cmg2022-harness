@@ -117,6 +117,8 @@ def decision(root, args):
 
 def execute(args):
     root = args.project.resolve()
+    if args.command in ("context", "checkpoint"):
+        return project_context(root, args)
     if args.command == "init":
         root.mkdir(parents=True, exist_ok=True)
         if any(root.iterdir()):
@@ -152,11 +154,85 @@ def execute(args):
     return verify(root, name)
 
 
+def project_context(root, args):
+    """Latest topic snapshots plus the existing authoritative case and role records."""
+    registry = directory(root, "registry")
+    decisions = directory(root, "decisions")
+    store = directory(root, "context")
+    if not registry.is_dir() or not directory(root, "cases").is_dir():
+        raise ValueError("Choose an existing study (or initialize a new one with init)")
+
+    def revisions(topic):
+        folder = directory(store, case_id(topic))
+        return sorted(folder.glob("[0-9]" * 8 + ".json"))
+
+    def load(path):
+        return json.loads(path.read_text(encoding="utf8"))
+
+    if args.command == "context" and args.topic is None:
+        topics = {}
+        for folder in sorted(store.glob("*")):
+            if folder.is_dir():
+                history = revisions(folder.name)
+                if history:
+                    last = load(history[-1])
+                    topics[folder.name] = {k: last[k] for k in ("revision", "kind", "summary", "next")}
+        roles = {}
+        for role in sorted(decisions.glob("*")):
+            if role.is_dir():
+                records = sorted(directory(decisions, case_id(role.name)).glob("[0-9]" * 8 + ".json"))
+                if records:
+                    roles[role.name] = load(records[-1])["case"]
+        return dict(topics=topics, roles=roles, cases=sorted(p.stem for p in registry.glob("*.json")),
+                    notes=[n for n in ("STUDY.md", "HANDOFF.md", "RESEARCH_LOG.md") if (root/n).is_file()])
+
+    history = revisions(args.topic)
+    revision = int(history[-1].stem) if history else 0
+    if args.command == "context":
+        if not history:
+            raise ValueError("No saved topic: " + args.topic)
+        return [load(p) for p in history] if args.history else load(history[-1])
+    if not args.summary.strip() or not args.next.strip():
+        raise ValueError("Supply a current summary and next action (or 'none')")
+    if not 0 <= args.base <= 99999998:
+        raise ValueError("Invalid base revision")
+    for name in args.case:
+        read(root, case_id(name))
+    for ref in args.evidence:
+        path = Path(ref)
+        if path.is_absolute() or path.drive or ".." in path.parts:
+            raise ValueError("Evidence must be a study-relative file")
+        if not directory(root, ref).is_file():
+            raise ValueError("Missing evidence: " + ref)
+    payload = dict(topic=args.topic, kind=args.kind, summary=args.summary.strip(),
+                   next=args.next.strip(), cases=args.case, evidence=args.evidence)
+    if history:
+        last = load(history[-1])
+        if all(last.get(k) == v for k, v in payload.items()) and args.base in (revision, revision-1):
+            return last
+    if revision != args.base:
+        raise ValueError(f"Topic changed (now revision {revision}); read it before retrying")
+    record = dict(**payload, revision=revision+1, utc=datetime.now(timezone.utc).isoformat())
+    publish(directory(store, args.topic) / f"{revision+1:08d}.json", record)
+    return record
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project", required=True, type=Path)
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("init", help="Initialize a new or empty study")
+    ctx = sub.add_parser("context", help="List topic summaries, cases and roles, or read one topic")
+    ctx.add_argument("topic", nargs="?", type=case_id)
+    ctx.add_argument("--history", action="store_true")
+    cp = sub.add_parser("checkpoint", help="Append the current topic state after a material change")
+    cp.add_argument("topic", type=case_id)
+    cp.add_argument("--base", type=int, required=True, help="Last revision read, or 0 for a new topic")
+    cp.add_argument("--kind", choices=("progress","feedback","decision","blocked","pause"), required=True)
+    cp.add_argument("--summary", required=True)
+    cp.add_argument("--next", required=True)
+    cp.add_argument("--case", action="append", default=[])
+    cp.add_argument("--evidence", action="append", default=[])
     for command in ("select", "current"):
         cmd = sub.add_parser(command)
         cmd.add_argument("role", help="Stable role, e.g. baseline or manuscript")
