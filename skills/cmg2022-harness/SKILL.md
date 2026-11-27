@@ -16,3 +16,11 @@ description: Organize and audit local CMG 2022 WinProp, GEM, Results and CMOST s
 - 使用 WinProp、GEM、Results 或 CMOST 时，按需要读 [软件验收](references/native.md)。
 - 设计机理对照、判断历史拟合或准备预测标签时，读 [证据与判据](references/evidence.md)。
 - 遇到审阅、追问、返工或版本交接时，读 [沟通与复核实例](references/collaboration.md)。
+
+## 默认保存与按任务读取
+
+接手、继续或切换任务时，先执行 `python harness.py --project study context` 看主题、算例和当前角色。将 study 替换为实际研究目录。只读取与本轮工作有关的主题，例如 `context fluid`、`context history-match` 或 `context report`；需要追溯纠正经过才加 `--history`。打开已选文件前运行 `current ROLE` 做完整性核查。旧研究没有主题时，按需读取已有交接页，并在首次实质进展后建立主题。
+
+默认在交付前记录本轮实质变化：新增或修正经核实的结果、用户明确的反馈或决策、交付物变化、阻塞、暂停及恢复点。按主题执行 `checkpoint TOPIC --base N --kind KIND --summary "当前已知状态" --next "下一项动作"`。N 取上次读取的修订号，新主题为 0；按需附 `--case ID` 和 `--evidence 项目相对路径`。保存完整、简短的当前主题摘要及仍相关的依据。收到纠正时说明修正了什么、依据是谁的指示或哪份数据，区分待验证解释与已核实结果。多主题变化分开保存。再读一次该主题，核对修订号与恢复动作；失败就报告具体原因。重复查询、措辞闲聊不写快照，用户要求只读时尊重该范围。遇到版本冲突先重读并合并，保留过往修订。算例登记和基准选择直接反映在主题总览中；checkpoint 不授予运行权限，也不切换基准。
+
+一般研究目录中的记录留在本地，保存工作所需摘要和证据位置即可，不复制聊天全文、凭证或个人信息。只装了 skill 而没有 harness.py 时，优先使用项目已有的等价读写接口；否则告知用户如何接入完整工具包。
